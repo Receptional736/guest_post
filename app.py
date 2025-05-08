@@ -30,7 +30,7 @@ class SearchRequest(BaseModel):
 
     keywords: str
     country: str 
-    acceptable_tlds: Optional[List[str]] 
+    acceptable_tlds: str
 
 class AhrefRequest(BaseModel):
     country: str
@@ -38,7 +38,7 @@ class AhrefRequest(BaseModel):
     traffic: int
     ranking: int
     keywords: str
-    acceptable_tlds: Optional[List[str]] 
+    acceptable_tlds: str
 
 async def verify_token(
     credentials: HTTPAuthorizationCredentials = Depends(security),
@@ -63,7 +63,7 @@ async def search(request: SearchRequest):
         searcher = SerpSearcher(
             keywords=request.keywords,
             country=request.country,
-            acceptable_tlds=request.acceptable_tlds or [],
+            acceptable_tlds=request.acceptable_tlds,
         )
         return searcher.search()
     except ValueError as exc:

@@ -13,7 +13,7 @@ class SerpSearcher:
         self,
         keywords: str,
         country: str,
-        acceptable_tlds: Optional[List[str]] = None
+        acceptable_tlds: str
     ):
 
         self.keywords = keywords
@@ -29,19 +29,22 @@ class SerpSearcher:
             raise ValueError("No API key provided or found in environment.")
 
     def tld(self, host: str) -> Optional[str]:
-        """
-        Check if a host’s TLD is in the acceptable list.
 
-        Args:
-            host: Hostname (e.g. 'example.com').
+        # 1. Normalise acceptable_tlds into a list
+        raw = self.acceptable_tlds
+        if isinstance(raw, str):
+            # split on whitespace or commas
+            tlds = [t.strip() for t in raw.replace(',', ' ').split() if t.strip()]
+        else:
+            tlds = raw
+   
+        # 2. Check each tld
+        for tld in tlds:
+            if host.endswith(tld):
+                return host
 
-        Returns:
-            The original host if its TLD (with leading dot) is acceptable, else None.
-        """
-        if '.' not in host:
-            return None
-        suffix = '.' + host.rsplit('.', 1)[-1]
-        return host if suffix in self.acceptable_tlds else None
+        # 3. No match
+        return None
 
     def _search_single(self, query: str) -> dict:
 

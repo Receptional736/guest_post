@@ -3,7 +3,6 @@ import os
 import datetime
 from typing import Iterable, List
 import requests
-import pandas as pd
 from dotenv import load_dotenv
 load_dotenv()
 

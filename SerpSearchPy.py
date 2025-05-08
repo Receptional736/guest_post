@@ -7,6 +7,8 @@ from typing import List, Optional
 
 load_dotenv()
 
+
+
 class SerpSearcher:
 
     def __init__(
@@ -47,11 +49,13 @@ class SerpSearcher:
         return None
 
     def _search_single(self, query: str) -> dict:
+        
+        q = f'{query} AND (""write for us"" OR ""we are accepting articles"" OR ""submit an article"" OR ""submit a blog"" OR ""submit content"" OR ""contribute to our blog"" OR ""aim for a word count"" OR ""author guidelines"" OR ""submit a guest post"" OR ""accepting guest posts"" OR ""guest post submission"" OR ""guest post author"" OR ""guest post guidelines"" OR ""submitting a guest post"" OR ""guest post"" OR ""guest author"" OR ""submission guidelines"" OR ""guest posting"")'
 
         headers = {"Authorization": f"Bearer {self.api_key}"}
         params = {
             "engine":        "google",
-            "q":             query,
+            "q":             q,
             "gl":            self.country,
             "google_domain": self.domain,
             "hl":            "en",
@@ -74,4 +78,14 @@ class SerpSearcher:
             if valid:
                 filtered_domains.append(valid)
         return {"output": filtered_domains}
+
+
+
+
+
+
+
+
+
+
 

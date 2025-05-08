@@ -105,12 +105,12 @@ class AhrefsMetrics:
 
             if dr >= target_dr and local_traffic >= target_traffic and ranking_keywords >= target_ranking:
                
-                r.append({"link":link})
-
-                r.append({"dr":dr})
-                r.append({"traffic":local_traffic})
-                r.append({"traffic_percent":percentage_traffic})
-                r.append({"ranking_keywords":ranking_keywords})
+                r.append({"link":link,
+                         "dr":dr,
+                         "traffic":local_traffic,
+                          "traffic_percent":percentage_traffic,
+                          "ranking_keywords":ranking_keywords                         
+                         })
 
         output = {'output':r}
                 

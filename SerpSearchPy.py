@@ -50,7 +50,7 @@ class SerpSearcher:
 
     def _search_single(self, query: str) -> dict:
         
-        q = f'{query} AND (""write for us"" OR ""we are accepting articles"" OR ""submit an article"" OR ""submit a blog"" OR ""submit content"" OR ""contribute to our blog"" OR ""aim for a word count"" OR ""author guidelines"" OR ""submit a guest post"" OR ""accepting guest posts"" OR ""guest post submission"" OR ""guest post author"" OR ""guest post guidelines"" OR ""submitting a guest post"" OR ""guest post"" OR ""guest author"" OR ""submission guidelines"" OR ""guest posting"")'
+        q = f'{query} AND ("write for us" OR "we are accepting articles" OR "submit an article" OR "submit a blog" OR "submit content" OR "contribute to our blog" OR "aim for a word count" OR "author guidelines" OR "submit a guest post" OR "accepting guest posts" OR "guest post submission" OR "guest post author" OR "guest post guidelines" OR "submitting a guest post" OR "guest post" OR "guest author" OR "submission guidelines" OR "guest posting")'
 
         headers = {"Authorization": f"Bearer {self.api_key}"}
         params = {

@@ -97,11 +97,16 @@ async def search(request: AhrefRequest):
         domains =  searcher.search()
         links = domains['output']
         client = AhrefsMetrics(request.country,date)
-        result = client.filter_links(links, target_dr=request.dr, 
-                                     target_traffic=request.traffic,target_ranking=request.ranking)
+        try:
+            result = client.filter_links(links, target_dr=request.dr, 
+                                        target_traffic=request.traffic,target_ranking=request.ranking)
 
 
-        return result
+            return result
+        
+        except Exception as e:
+            result = {'output': [{'link': ''}, {'dr': ''}, {'traffic': ''}, {'traffic_percent': ''}, {'ranking_keywords': ''}]}
+            return result
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

@@ -39,6 +39,7 @@ class AhrefRequest(BaseModel):
     ranking: int
     keywords: str
     acceptable_tlds: str
+    pres_traffic: float
 
 async def verify_token(
     credentials: HTTPAuthorizationCredentials = Depends(security),
@@ -99,13 +100,13 @@ async def search(request: AhrefRequest):
         client = AhrefsMetrics(request.country,date)
         try:
             result = client.filter_links(links, target_dr=request.dr, 
-                                        target_traffic=request.traffic,target_ranking=request.ranking)
+                                        target_traffic=request.traffic,target_ranking=request.ranking,target_precentage_traffic=request.pres_traffic)
 
 
             return result
         
         except Exception as e:
-            result = {'output': [{'link': ''}, {'dr': ''}, {'traffic': ''}, {'traffic_percent': ''}, {'ranking_keywords': ''}]}
+            result = {'output': [{'link': ''}, {'dr': ''}, {'traffic': ''}, {'traffic_percent': ''}, {'ranking_keywords': ''},{'target_precentage_traffic':''}]}
             return result
     except ValueError as exc:
         raise HTTPException(

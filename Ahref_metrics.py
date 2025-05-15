@@ -91,7 +91,8 @@ class AhrefsMetrics:
         links: Iterable[str],
         target_dr: float,
         target_traffic: int,
-        target_ranking: int
+        target_ranking: int,
+        target_precentage_traffic: float
     ) :
 
         unique_links: List[str] = list(dict.fromkeys(links))  # preserve order, drop dups
@@ -103,7 +104,7 @@ class AhrefsMetrics:
             local_traffic, percentage_traffic, ranking_keywords = self.get_organic_traffic(link)
             dr = self.get_domain_rating(link)
 
-            if dr >= target_dr and local_traffic >= target_traffic and ranking_keywords >= target_ranking:
+            if dr >= target_dr and local_traffic >= target_traffic and ranking_keywords >= target_ranking and percentage_traffic >= target_precentage_traffic:
                
                 r.append({"link":link,
                          "dr":dr,

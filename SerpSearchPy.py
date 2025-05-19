@@ -23,7 +23,7 @@ class SerpSearcher:
         self.api_key = os.getenv('SEARCH_API_KEY')
         self.domain = "google.co.uk"
         self.base_url = "https://www.searchapi.io/api/v1/search"
-        self.num_results = 20
+        self.num_results = 100
         self.page = 1
         self.acceptable_tlds = acceptable_tlds or []
 

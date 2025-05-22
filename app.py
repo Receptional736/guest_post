@@ -29,17 +29,18 @@ class SearchRequest(BaseModel):
 
 
     keywords: str
-    country: str 
-    acceptable_tlds: str
+    country: Optional[str] = ""
+    acceptable_tlds: Optional[str] = ""
 
 class AhrefRequest(BaseModel):
-    country: str
-    dr: int
-    traffic: int
-    ranking: int
+    country: Optional[str] = "gb"
+    max_dr: Optional[str] = "0"
+    min_dr: Optional[str] = "100"
+    traffic: Optional[str] = "0"
+    ranking: Optional[str] = "0"
     keywords: str
-    acceptable_tlds: str
-    pres_traffic: float
+    acceptable_tlds: Optional[str] = "all"
+    pres_traffic: Optional[str] = "0.0"
 
 async def verify_token(
     credentials: HTTPAuthorizationCredentials = Depends(security),
@@ -84,28 +85,43 @@ async def search(request: SearchRequest):
 async def search(request: AhrefRequest):
 
     try:
-
-
-        
      
         date = datetime.date.today().isoformat()
+
+        
 
         searcher = SerpSearcher(
             keywords=request.keywords,
             country=request.country,
-            acceptable_tlds=request.acceptable_tlds or [],
+            acceptable_tlds=request.acceptable_tlds,
         )
         domains =  searcher.search()
         links = domains['output']
         client = AhrefsMetrics(request.country,date)
+        max_dr, min_dr, traffic,ranking, pres_traffic = request.max_dr, request.min_dr, request.traffic, request.ranking, request.pres_traffic
+
+
+        max_dr = float(request.max_dr) if request.max_dr else 0.0
+        min_dr = float(request.min_dr) if request.min_dr else 100.0
+        traffic = int(request.traffic or 0)
+        ranking = int(request.ranking or 0)
+        pres_traffic = float(request.pres_traffic or 0.0)
+
         try:
-            result = client.filter_links(links, target_dr=request.dr, 
-                                        target_traffic=request.traffic,target_ranking=request.ranking,target_precentage_traffic=request.pres_traffic)
+            result = client.filter_links(
+                links,
+                mx_dr=max_dr,
+                mn_dr=min_dr,
+                target_traffic=traffic,
+                target_ranking=ranking,
+                target_precentage_traffic=pres_traffic,
+            )
 
 
             return result
         
         except Exception as e:
+            print(e)
             result = {'output': [{'link': ''}, {'dr': ''}, {'traffic': ''}, {'traffic_percent': ''}, {'ranking_keywords': ''},{'target_precentage_traffic':''}]}
             return result
     except ValueError as exc:

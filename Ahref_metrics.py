@@ -1,32 +1,40 @@
 from __future__ import annotations
-import os
-import datetime
-from typing import Iterable, List
-import requests
-from dotenv import load_dotenv
-load_dotenv()
 
+import os
+from typing import Iterable, List, Optional, Tuple, Dict, Any
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import requests
+from requests.adapters import HTTPAdapter, Retry
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class AhrefsMetrics:
 
     BASE_URL = "https://api.ahrefs.com/v3"
 
+    # ------------------------------------------------------------------ #
+    # construction
+    # ------------------------------------------------------------------ #
     def __init__(
         self,
-        country: str ,
+        country: str,
         date: str,
+        *,
+        max_workers: int = 20,          # threads used for concurrency
+        connect_timeout: int = 3,
+        read_timeout: int = 30,
     ):
-
-        self.api_key = os.getenv("AHREFS_API_KEY")
+        self.api_key: str = os.getenv("AHREFS_API_KEY") or ""
         if not self.api_key:
-            raise ValueError(
-                "No API key supplied. Pass 'api_key' or set the AHREFS_API_KEY environment variable."
-            )
+            raise ValueError("Set the AHREFS_API_KEY env var.")
 
-        self.country = country.lower()
-        self.date = date 
+        self.country = (country or "global").lower()
+        self.date = date
+        self.timeout: Tuple[int, int] = (connect_timeout, read_timeout)
 
+        # one Session shared by all threads
         self.session = requests.Session()
         self.session.headers.update(
             {
@@ -35,87 +43,101 @@ class AhrefsMetrics:
             }
         )
 
-    # --------------------------------------------------------------------- #
-    # Low‑level helpers
-    # --------------------------------------------------------------------- #
-    def _get(self, endpoint: str, **params):
+        # fast TLS reuse + retries
+        adapter = HTTPAdapter(
+            pool_connections=max_workers,
+            pool_maxsize=max_workers,
+            max_retries=Retry(total=3, backoff_factor=1),
+        )
+        self.session.mount("https://", adapter)
+
+        self.max_workers = max_workers
+
+    # ------------------------------------------------------------------ #
+    # low-level helper
+    # ------------------------------------------------------------------ #
+    def _get(self, endpoint: str, **params) -> Dict[str, Any]:
+        """Thin wrapper around requests-Session.get with error handling."""
         url = f"{self.BASE_URL}/{endpoint}"
-        resp = self.session.get(url, params=params)
+        resp = self.session.get(url, params=params, timeout=self.timeout)
         resp.raise_for_status()
         return resp.json()
 
-    # --------------------------------------------------------------------- #
-    # Public API methods
-    # --------------------------------------------------------------------- #
-    def get_organic_traffic(
-        self,
-        target: str
-    ):
-        """Return estimated monthly organic traffic for *target*. and location"""
-        payload = {
-            "target": target,
-            "country": self.country,
-            "date": self.date,
-        }
-        data = self._get("site-explorer/metrics", **payload)
-        local_traffic = float(data.get("metrics", {}).get("org_traffic", 0))
-        org_keywords = data.get('metrics').get('org_keywords',0)
+    # ------------------------------------------------------------------ #
+    # public API calls
+    # ------------------------------------------------------------------ #
+    def get_organic_traffic(self, target: str) -> Tuple[float, float, int]:
+        """Return local traffic, local/global ratio, number of ranking kws."""
+        # local
+        pl_local = {"target": target, "date": self.date}
+        if self.country != "global":
+            pl_local["country"] = self.country
+        data_local = self._get("site-explorer/metrics", **pl_local)
 
-        #global info
-        payload = {
-            "target": target,
-            "date": self.date,
-        }
-        
-        data_glob = self._get("site-explorer/metrics", **payload)
+        # global
+        pl_global = {"target": target, "date": self.date}
+        data_glob = self._get("site-explorer/metrics", **pl_global)
+
+        local_traffic = float(data_local.get("metrics", {}).get("org_traffic", 0))
         global_traffic = float(data_glob.get("metrics", {}).get("org_traffic", 0))
-        print(local_traffic,global_traffic)
-        return local_traffic, local_traffic/global_traffic, org_keywords
+        ranking_kws = int(data_local.get("metrics", {}).get("org_keywords", 0))
 
-    def get_domain_rating(
-        self,
-        target: str,
-    ):
-        payload = {
-            "target": target,
-            "date": self.date,
-        }
-        data = self._get("site-explorer/domain-rating", **payload)
+        ratio = 0.0 if global_traffic == 0 else local_traffic / global_traffic
+        return local_traffic, ratio, ranking_kws
+
+    def get_domain_rating(self, target: str) -> float:
+        data = self._get(
+            "site-explorer/domain-rating",
+            target=target,
+            date=self.date,
+        )
         return float(data.get("domain_rating", {}).get("domain_rating", 0))
 
-    # --------------------------------------------------------------------- #
-    # Higher‑level workflows
-    # --------------------------------------------------------------------- #
+    # ------------------------------------------------------------------ #
+    # one-domain worker used by the thread pool
+    # ------------------------------------------------------------------ #
+    def _collect_one(self, link: str) -> Tuple[str, Dict[str, Any]]:
+        """Fetch all metrics needed for a single link; returns raw data."""
+        local_traffic, pct, kw = self.get_organic_traffic(link)
+        dr = self.get_domain_rating(link)
+        return link, {
+            "dr": dr,
+            "traffic": local_traffic,
+            "traffic_percent": pct,
+            "ranking_keywords": kw,
+        }
+
+    # ------------------------------------------------------------------ #
+    # high-level workflow
+    # ------------------------------------------------------------------ #
     def filter_links(
         self,
-        links: Iterable[str],
-        target_dr: float,
-        target_traffic: int,
-        target_ranking: int,
-        target_precentage_traffic: float
-    ) :
+        links: Optional[Iterable[str]],
+        *,
+        mx_dr: float = 0.0,
+        mn_dr: float = 100.0,
+        target_traffic: int = 0,
+        target_ranking: int = 0,
+        target_precentage_traffic: float = 0.0,
+    ) -> Dict[str, List[Dict[str, Any]]]:
+        """Return the subset of links that meet all the supplied thresholds."""
+        if not links:
+            links = ["https://receptional.com"]
 
-        unique_links: List[str] = list(dict.fromkeys(links))  # preserve order, drop dups
+        unique_links: List[str] = list(dict.fromkeys(links))
+        passed: List[Dict[str, Any]] = []
 
-        r = []
-        
+        with ThreadPoolExecutor(max_workers=self.max_workers) as pool:
+            futures = {pool.submit(self._collect_one, link): link for link in unique_links}
+            for fut in as_completed(futures):
+                link, data = fut.result()
+                # apply thresholds
+                if (
+                    mx_dr <= data["dr"] <= mn_dr
+                    and data["traffic"] >= target_traffic
+                    and data["ranking_keywords"] >= target_ranking
+                    and data["traffic_percent"] >= target_precentage_traffic
+                ):
+                    passed.append({"link": link, **data})
 
-        for link in unique_links:
-            local_traffic, percentage_traffic, ranking_keywords = self.get_organic_traffic(link)
-            dr = self.get_domain_rating(link)
-
-            if dr >= target_dr and local_traffic >= target_traffic and ranking_keywords >= target_ranking and percentage_traffic >= target_precentage_traffic:
-               
-                r.append({"link":link,
-                         "dr":dr,
-                         "traffic":local_traffic,
-                          "traffic_percent":percentage_traffic,
-                          "ranking_keywords":ranking_keywords                         
-                         })
-
-        output = {'output':r}
-                
-        return output
-
-
-
+        return {"output": passed}

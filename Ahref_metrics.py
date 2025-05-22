@@ -122,7 +122,8 @@ class AhrefsMetrics:
     ) -> Dict[str, List[Dict[str, Any]]]:
         """Return the subset of links that meet all the supplied thresholds."""
         if not links:
-            links = ["https://receptional.com"]
+            result = {'output': [{'link': '','dr': '','traffic': '','traffic_percent': '','ranking_keywords': ''}]}
+            return result
 
         unique_links: List[str] = list(dict.fromkeys(links))
         passed: List[Dict[str, Any]] = []

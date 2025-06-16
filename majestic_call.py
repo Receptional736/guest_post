@@ -6,7 +6,7 @@ from openai import OpenAI
 from urllib.parse import urlparse
 
 load_dotenv()
-gpt_llm = OpenAI()
+gpt_llm = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 MAJESTIC_API_KEY = os.getenv('MAJESTIC_API_KEY')
 ENDPOINT = "https://api.majestic.com/api/json"  
 

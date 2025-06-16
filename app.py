@@ -12,6 +12,7 @@ import requests
 
 from SerpSearchPy import SerpSearcher
 from Ahref_metrics import AhrefsMetrics
+from majestic_call import get_ttf, sub_relevance_checker
 #----------------------------------------------CONF--------------------------------------------
 load_dotenv()
 
@@ -31,6 +32,10 @@ class SearchRequest(BaseModel):
     keywords: str
     country: Optional[str] = ""
     acceptable_tlds: Optional[str] = ""
+
+class MajesticRequest(BaseModel):
+    urls: List[str]
+    client_url: str
 
 class AhrefRequest(BaseModel):
     country: Optional[str] = "gb"
@@ -78,6 +83,12 @@ async def search(request: SearchRequest):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Unexpected error: {exc}",
         ) from exc
+
+
+
+
+        
+
 
 
 
@@ -129,13 +140,34 @@ async def search(request: AhrefRequest):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(exc),
         ) from exc
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE00
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Unexpected error: {exc}",
         ) from exc
 
 
+
+
+
+
+@app.post("/majapi",dependencies=[Depends(verify_token)])
+async def majestic_(request:MajesticRequest):
+    ttf_checker = []
+
+    c_ttf = request.client_url
+
+    for link in request.urls:
+        
+        pros_ttf = get_ttf(link)
+
+        relevance = sub_relevance_checker(pros_ttf,c_ttf)
+
+        pros_ttf["relevance"] = relevance
+
+        ttf_checker.append(pros_ttf)
+
+    return {'output':ttf_checker}
 
 
 

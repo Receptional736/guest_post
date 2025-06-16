@@ -58,6 +58,8 @@ db.sqlite3-journal
 instance/
 .webassets-cache
 
+docs.txt
+
 # Scrapy stuff
 .scrapy
 

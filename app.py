@@ -36,6 +36,7 @@ class SearchRequest(BaseModel):
 class MajesticRequest(BaseModel):
     urls: str
     client_url: str
+    counter:int
 
 class AhrefRequest(BaseModel):
     country: Optional[str] = "gb"
@@ -158,13 +159,15 @@ async def majestic_(request:MajesticRequest):
     c_ttf = request.client_url
 
     links = request.urls.split(sep=",")
-    
+    cnt = request.counter
     for link in links:
         
         pros_ttf = get_ttf(link)
         relevance = sub_relevance_checker(pros_ttf,c_ttf)
         pros_ttf["relevance"] = relevance
+        pros_ttf["counter"] = cnt
         ttf_checker.append(pros_ttf)
+        cnt +=1
 
     return {'output':ttf_checker}
 

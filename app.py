@@ -34,7 +34,7 @@ class SearchRequest(BaseModel):
     acceptable_tlds: Optional[str] = ""
 
 class MajesticRequest(BaseModel):
-    urls: List[str]
+    urls: str
     client_url: str
 
 class AhrefRequest(BaseModel):
@@ -157,14 +157,13 @@ async def majestic_(request:MajesticRequest):
 
     c_ttf = request.client_url
 
-    for link in request.urls:
+    links = request.urls.split(sep=",")
+    
+    for link in links:
         
         pros_ttf = get_ttf(link)
-
         relevance = sub_relevance_checker(pros_ttf,c_ttf)
-
         pros_ttf["relevance"] = relevance
-
         ttf_checker.append(pros_ttf)
 
     return {'output':ttf_checker}

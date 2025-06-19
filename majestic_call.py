@@ -70,7 +70,7 @@ def sub_relevance_checker(target_url, client_url):
           model="gpt-4o-mini",
           messages=[
             {"role": "developer", "content": "You are a subject analyser. Only respond with 'pass' or 'fail'. No explanation. Lowercase only."},
-            {"role": "user", "content": f"If any subject in this list {target_url} is related to '{client_url}', respond with 'pass'. Otherwise respond with 'fail'."}
+            {"role": "user", "content": f"If any subject in this list {target_url} is related to any of subject'{client_url}', respond with 'pass'. Otherwise respond with 'fail'."}
           ]
         )
         

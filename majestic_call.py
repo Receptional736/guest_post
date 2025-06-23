@@ -39,9 +39,11 @@ def get_ttf(url: str, datasource: str = "fresh"):
     params = {
         "app_api_key": MAJESTIC_API_KEY,
         "cmd": "GetIndexItemInfo",
-        "items": 1,          # number of items in this request
-        "item0": url,       # the single item we’re querying
-        "datasource": datasource  # fresh or historic
+        "items": 1,
+        "item0": url,
+        "datasource": datasource,
+        "DesiredTopics": 10,      # up to 30/20/10 as per docs
+        "AddAllTopics": 1         # optional, gives the 'TrustCategories' field
     }
 
     try:
@@ -57,7 +59,9 @@ def get_ttf(url: str, datasource: str = "fresh"):
     TTF = {
         'ttf0':info['TopicalTrustFlow_Topic_0'],
         'ttf1':info['TopicalTrustFlow_Topic_1'],
-        'ttf2':info['TopicalTrustFlow_Topic_2']
+        'ttf2':info['TopicalTrustFlow_Topic_2'],
+        'ttf3':info['TopicalTrustFlow_Topic_3'],
+        'ttf4':info['TopicalTrustFlow_Topic_4']
     }
     
     return TTF

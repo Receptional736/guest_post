@@ -168,7 +168,12 @@ async def majestic_(request:MajesticRequest):
         ttf_checker.append(pros_ttf)
         cnt +=1
 
-    return {'output':ttf_checker}
+    return {'output':
+            {
+                'prospect':ttf_checker,
+                'target_ttf':target_ttf
+            }
+            }
 
 
 

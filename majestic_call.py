@@ -34,7 +34,7 @@ def canonical_url(raw: str, *, keep_scheme: bool = False, strip_www: bool = True
 
 def get_ttf(url: str, datasource: str = "fresh"):
 
-    url = canonical_url(url)
+    #url = canonical_url(url)
     
     params = {
         "app_api_key": MAJESTIC_API_KEY,
@@ -64,17 +64,14 @@ def get_ttf(url: str, datasource: str = "fresh"):
 
 
 
-def sub_relevance_checker(target_url, client_url):
+def sub_relevance_checker(prospect, target):
     try:
-        completion = gpt_llm.chat.completions.create(
-          model="gpt-4o-mini",
-          messages=[
-            {"role": "developer", "content": "You are a subject analyser. Only respond with 'pass' or 'fail'. No explanation. Lowercase only."},
-            {"role": "user", "content": f"If any subject in this list {target_url} is related and close match with any of subject'{client_url}', respond with 'pass'. Otherwise respond with 'fail'."}
-          ]
-        )
-        
-        return completion.choices[0].message.content
-        
+
+        for pros in prospect.values():
+            for targ in target.values():
+                if pros == targ:
+                    return 'pass'
+
+        return 'fail'
     except Exception as e:
-        return 'None'
+        return 'fail'

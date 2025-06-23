@@ -156,14 +156,13 @@ async def search(request: AhrefRequest):
 async def majestic_(request:MajesticRequest):
     ttf_checker = []
 
-    c_ttf = get_ttf(request.client_url)
-    print('clinet',c_ttf)
+    target_ttf = get_ttf(request.client_url)
     links = request.urls.split(sep=",")
     cnt = request.counter
     for link in links:
         
         pros_ttf = get_ttf(link)
-        relevance = sub_relevance_checker(pros_ttf,c_ttf)
+        relevance = sub_relevance_checker(pros_ttf,target_ttf)
         pros_ttf["relevance"] = relevance
         pros_ttf["counter"] = cnt
         ttf_checker.append(pros_ttf)

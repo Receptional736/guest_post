@@ -129,12 +129,12 @@ async def search(request: AhrefRequest):
                 target_precentage_traffic=pres_traffic,
             )
 
-
+                #
             return result
         
         except Exception as e:
             print(e)
-            result = {'output': [{'link': ''}, {'dr': ''}, {'traffic': ''}, {'traffic_percent': ''}, {'ranking_keywords': ''},{'target_precentage_traffic':''}]}
+            result = {'output': [{'link': ''},{'counter': 2}, {'dr': ''}, {'traffic': ''}, {'traffic_percent': ''}, {'ranking_keywords': ''},{'target_precentage_traffic':''}]}
             return result
     except ValueError as exc:
         raise HTTPException(

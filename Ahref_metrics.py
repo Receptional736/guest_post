@@ -122,14 +122,15 @@ class AhrefsMetrics:
     ) -> Dict[str, List[Dict[str, Any]]]:
         """Return the subset of links that meet all the supplied thresholds."""
         if not links:
-            result = {'output': [{'link': '','dr': '','traffic': '','traffic_percent': '','ranking_keywords': ''}]}
+            result = {'output': [{'link': '','dr': '','counter':2,'traffic': '','traffic_percent': '','ranking_keywords': ''}]}
             return result
 
         unique_links: List[str] = list(dict.fromkeys(links))
         passed: List[Dict[str, Any]] = []
-
+        counter = 2
         with ThreadPoolExecutor(max_workers=self.max_workers) as pool:
             futures = {pool.submit(self._collect_one, link): link for link in unique_links}
+            counter = 2
             for fut in as_completed(futures):
                 link, data = fut.result()
                 # apply thresholds
@@ -139,6 +140,6 @@ class AhrefsMetrics:
                     and data["ranking_keywords"] >= target_ranking
                     and data["traffic_percent"] >= target_precentage_traffic
                 ):
-                    passed.append({"link": link, **data})
-
+                    passed.append({"link": link,"counter":counter, **data})
+                    counter +=1
         return {"output": passed}

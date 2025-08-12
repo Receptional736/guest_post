@@ -15,15 +15,16 @@ class SerpSearcher:
         self,
         keywords: str,
         country: str,
-        acceptable_tlds: str
+        acceptable_tlds: str,
+        language:str
     ):
 
         self.keywords = keywords
+        self.language = language
 
         if country is None or country == "":
             country = 'global'
         
-        print(acceptable_tlds)
         if acceptable_tlds is None or acceptable_tlds == "":
             acceptable_tlds = 'all' 
 
@@ -57,9 +58,22 @@ class SerpSearcher:
         # 3. No match
         return None
 
-    def _search_single(self, query: str) -> dict:
-        
-        q = f'{query} AND ("write for us" OR "we are accepting articles" OR "submit an article" OR "submit a blog" OR "submit content" OR "contribute to our blog" OR "aim for a word count" OR "author guidelines" OR "submit a guest post" OR "accepting guest posts" OR "guest post submission" OR "guest post author" OR "guest post guidelines" OR "submitting a guest post" OR "guest post" OR "guest author" OR "submission guidelines" OR "guest posting")'
+    def _search_single(self, query: str, language: str) -> dict:
+            
+        if language == 'Native':
+            if self.country == 'BG':
+                q = f'{query} AND ("пишете за нас" OR "приемаме статии" OR "изпратете статия" OR "изпратете блог" OR "изпрати статия" OR "допринесете за нашия блог" OR "изпратете публикация за гости" OR "приемане на публикации за гости" OR "изпращане на публикация за гости" OR "гост автор на публикация" OR "насоки за публикуване на гости" OR "публикуване на гост публикация" OR "публикация за гости" OR "гост автор" OR "публикуване на гости" OR "изпрати блог" OR "гостуваща статия" OR "гост блог")'
+
+            elif self.country == 'BR':
+                q = f'{query} AND ("escreva para nós" OR "estamos aceitando artigos" OR "enviar um artigo" OR "enviar um blog" OR "enviar artigo" OR "contribua para o nosso blog" OR "diretrizes do autor" OR "enviar uma postagem de convidado" OR "aceitando postagens de convidados" OR "enviando uma postagem de convidado" OR "postagem de convidado" OR "autor convidado" OR "diretrizes de submissão" OR "enviar blog" OR "artigo convidado" OR "blog convidado")'
+
+            else:
+                q = f'{query} AND ("write for us" OR "submit a blog" OR "submit blog" OR "submit article" OR "contribute to our blog" OR "submit a guest post" OR "accepting guest posts" OR "guest post submission" OR "guest post author" OR "guest post guidelines" OR "submitting a guest post" OR "guest post" OR "guest author" OR "guest posting" OR "guest article" OR "guest blogging" OR "guest blog")'
+
+        else:
+            q = f'{query} AND ("write for us" OR "submit a blog" OR "submit blog" OR "submit article" OR "contribute to our blog" OR "submit a guest post" OR "accepting guest posts" OR "guest post submission" OR "guest post author" OR "guest post guidelines" OR "submitting a guest post" OR "guest post" OR "guest author" OR "guest posting" OR "guest article" OR "guest blogging" OR "guest blog")'
+
+
 
         headers = {"Authorization": f"Bearer {self.api_key}"}
 
@@ -92,7 +106,7 @@ class SerpSearcher:
 
         filtered_domains: List[str] = []
     
-        data = self._search_single(self.keywords)
+        data = self._search_single(self.keywords,self.language)
 
         if self.acceptable_tlds == "all":
 

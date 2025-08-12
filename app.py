@@ -32,6 +32,7 @@ class SearchRequest(BaseModel):
     keywords: str
     country: Optional[str] = ""
     acceptable_tlds: Optional[str] = ""
+    language: str = ""
 
 class MajesticRequest(BaseModel):
     urls: str
@@ -47,6 +48,7 @@ class AhrefRequest(BaseModel):
     keywords: str
     acceptable_tlds: Optional[str] = "all"
     pres_traffic: Optional[str] = "0.0"
+    language: str = ""
 
 async def verify_token(
     credentials: HTTPAuthorizationCredentials = Depends(security),
@@ -72,6 +74,7 @@ async def search(request: SearchRequest):
             keywords=request.keywords,
             country=request.country,
             acceptable_tlds=request.acceptable_tlds,
+            language = request.language
         )
         return searcher.search()
     except ValueError as exc:
@@ -106,6 +109,7 @@ async def search(request: AhrefRequest):
             keywords=request.keywords,
             country=request.country,
             acceptable_tlds=request.acceptable_tlds,
+            language = request.language
         )
         domains =  searcher.search()
         links = domains['output']

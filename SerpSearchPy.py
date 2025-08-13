@@ -62,9 +62,11 @@ class SerpSearcher:
             
         if language == 'Native':
             if self.country == 'bg':
+                self.domain = "google.bg"
                 q = f'{query} AND ("пишете за нас" OR "приемаме статии" OR "изпратете статия" OR "изпратете блог" OR "изпрати статия" OR "допринесете за нашия блог" OR "изпратете публикация за гости" OR "приемане на публикации за гости" OR "изпращане на публикация за гости" OR "гост автор на публикация" OR "насоки за публикуване на гости" OR "публикуване на гост публикация" OR "публикация за гости" OR "гост автор" OR "публикуване на гости" OR "изпрати блог" OR "гостуваща статия" OR "гост блог")'
 
             elif self.country == 'br':
+                self.domain = "google.com.br"
                 q = f'{query} AND ("escreva para nós" OR "estamos aceitando artigos" OR "enviar um artigo" OR "enviar um blog" OR "enviar artigo" OR "contribua para o nosso blog" OR "diretrizes do autor" OR "enviar uma postagem de convidado" OR "aceitando postagens de convidados" OR "enviando uma postagem de convidado" OR "postagem de convidado" OR "autor convidado" OR "diretrizes de submissão" OR "enviar blog" OR "artigo convidado" OR "blog convidado")'
 
             else:

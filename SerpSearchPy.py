@@ -16,7 +16,9 @@ class SerpSearcher:
         keywords: str,
         country: str,
         acceptable_tlds: str,
-        language:str
+        language:str,
+        num_results: int=10,
+        page: int=1
     ):
 
         self.keywords = keywords
@@ -33,8 +35,8 @@ class SerpSearcher:
         self.api_key = os.getenv('SEARCH_API_KEY')
         self.domain = "google.co.uk"
         self.base_url = "https://www.searchapi.io/api/v1/search"
-        self.num_results = 20
-        self.page = 1
+        self.num_results = num_results
+        self.page = page
         self.acceptable_tlds = acceptable_tlds or []
 
         if not self.api_key:

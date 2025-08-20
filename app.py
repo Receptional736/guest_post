@@ -103,16 +103,20 @@ async def search(request: AhrefRequest):
      
         date = datetime.date.today().isoformat()
 
+        links = []
         
+        for i in range (1,10):
+            searcher = SerpSearcher(
+                keywords=request.keywords,
+                country=request.country,
+                acceptable_tlds=request.acceptable_tlds,
+                language = request.language,
+                num_results = 20,
+                page = i
+            )
+            domains =  searcher.search()
+            links.extend(domains['output'])
 
-        searcher = SerpSearcher(
-            keywords=request.keywords,
-            country=request.country,
-            acceptable_tlds=request.acceptable_tlds,
-            language = request.language
-        )
-        domains =  searcher.search()
-        links = domains['output']
         client = AhrefsMetrics(request.country,date)
         max_dr, min_dr, traffic,ranking, pres_traffic = request.max_dr, request.min_dr, request.traffic, request.ranking, request.pres_traffic
 
